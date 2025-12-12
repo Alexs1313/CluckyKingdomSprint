@@ -172,7 +172,9 @@ const CluckyKingdomSprintMarket = () => {
         {cluckySprintKingdomState === 'unlocked' && (
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => cluckySprintKingdomSaveSelected(wp.id)}
+            onPress={() =>
+              cluckySprintKingdomSaveSelected(cluckySprintWallpaper.id)
+            }
           >
             <ImageBackground
               source={require('../../assets/images/cluckySprintbtn.png')}
