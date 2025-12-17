@@ -17,8 +17,8 @@ const CluckySprintKingdomNavigation = () => {
         component={CluckySprintKingdomCustomLoader}
       />
       <Stack.Screen
-        name="CluckyKingdomSprintStartOnboard"
-        component={CluckyKingdomSprintStartOnboard}
+        name="CluckyKingdomSprintStartOnboar"
+        component={CluckyKingdomSprintStartOnboar}
       />
       <Stack.Screen
         name="CluckyKingdomSprintHome"
