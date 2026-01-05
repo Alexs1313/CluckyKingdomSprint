@@ -253,13 +253,12 @@ const CluckyKingdomSprintPlayground = () => {
         useNativeDriver: true,
       }),
       Animated.timing(cluckySprintRotate, {
-        toValue: Math.random() * 1.2 - 0.6, // небольшая ротация на падении
+        toValue: Math.random() * 1.2 - 0.6,
         duration: fallDuration,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // удаляем фрукт если он не был уже удалён
       setCluckySprintKingdomFruits(prevFruit =>
         prevFruit.filter(f => f.id !== newCluckyFruit.id),
       );
@@ -644,12 +643,20 @@ The fruits can be used to unlock new backgrounds in the corresponding section.`}
             activeOpacity={0.6}
             onPress={cluckySprintKingdomOnStartPlayPress}
           >
-            <ImageBackground
-              source={require('../../assets/images/cluckySprintbtn.png')}
-              style={styles.cluckySprintKingdomBtn}
+            <LinearGradient
+              colors={['#FAA506', '#F6FA7E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                width: 242,
+                height: 104,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 22,
+              }}
             >
               <Text style={styles.cluckySprintKingdomBtnText}>START PLAY</Text>
-            </ImageBackground>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -750,14 +757,22 @@ The fruits can be used to unlock new backgrounds in the corresponding section.`}
                   cluckySprintKingdomNavigation.goBack();
                 }}
               >
-                <ImageBackground
-                  source={require('../../assets/images/cluckySprintbtns.png')}
-                  style={styles.cluckySprintKingdomHomeBtn}
+                <LinearGradient
+                  colors={['#FAA506', '#F6FA7E']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    width: 112,
+                    height: 47,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 12,
+                  }}
                 >
                   <Text style={styles.cluckySprintKingdomHomeBtnText}>
                     HOME
                   </Text>
-                </ImageBackground>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
@@ -811,42 +826,66 @@ The fruits can be used to unlock new backgrounds in the corresponding section.`}
                 onPress={cluckySprintKingdomOnResultNextLevel}
                 activeOpacity={0.6}
               >
-                <ImageBackground
-                  source={require('../../assets/images/cluckySprintbtnRes.png')}
-                  style={styles.cluckySprintKingdomResultBtn}
+                <LinearGradient
+                  colors={['#FAA506', '#F6FA7E']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    width: 242,
+                    height: 104,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 22,
+                  }}
                 >
                   <Text style={styles.cluckySprintKingdomResultBtnText}>
                     NEXT LEVEL
                   </Text>
-                </ImageBackground>
+                </LinearGradient>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={cluckySprintKingdomOnShare}
                 activeOpacity={0.6}
               >
-                <ImageBackground
-                  source={require('../../assets/images/cluckySprintbtnRes.png')}
-                  style={styles.cluckySprintKingdomResultBtn}
+                <LinearGradient
+                  colors={['#FAA506', '#F6FA7E']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    width: 242,
+                    height: 104,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 22,
+                  }}
                 >
                   <Text style={styles.cluckySprintKingdomResultBtnText}>
                     SHARE
                   </Text>
-                </ImageBackground>
+                </LinearGradient>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={cluckySprintKingdomOnResultHome}
                 activeOpacity={0.6}
               >
-                <ImageBackground
-                  source={require('../../assets/images/cluckySprintbtnRes.png')}
-                  style={styles.cluckySprintKingdomResultBtn}
+                <LinearGradient
+                  colors={['#FAA506', '#F6FA7E']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    width: 242,
+                    height: 104,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 22,
+                  }}
                 >
                   <Text style={styles.cluckySprintKingdomResultBtnText}>
                     HOME
                   </Text>
-                </ImageBackground>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>

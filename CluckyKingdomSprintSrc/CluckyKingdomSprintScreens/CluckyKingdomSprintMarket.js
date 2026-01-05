@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import CluckySprintKingdomLayout from '../CluckyKingdomSprintComponents/CluckySprintKingdomLayout';
 import { cluckySprintKingdomWallpapers } from '../CluckyKingdomSprintConsts/cluckySprintKingdomWallpapers';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { height } = Dimensions.get('window');
 
@@ -218,40 +219,64 @@ const CluckyKingdomSprintMarket = () => {
               activeOpacity={0.7}
               onPress={() => cluckySprintKingdomTryBuy(cluckySprintWallpaper)}
             >
-              <ImageBackground
-                source={require('../../assets/images/cluckySprintbtn.png')}
-                style={styles.cluckySprintKingdomActionBtn}
+              <LinearGradient
+                colors={['#FAA506', '#F6FA7E']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  width: 242,
+                  height: 104,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 22,
+                }}
               >
                 <Text style={styles.cluckySprintKingdomActionBtnText}>
                   Unlock for {cluckySprintWallpaper.price}
                 </Text>
                 <Image source={require('../../assets/images/lemon.png')} />
-              </ImageBackground>
+              </LinearGradient>
             </TouchableOpacity>
           )}
 
           {cluckySprintKingdomState === 'unlocked' && (
             <TouchableOpacity
-              activeOpacity={0.7}
+              activeOpacity={0.6}
               onPress={() =>
                 cluckySprintKingdomSaveSelected(cluckySprintWallpaper.id)
               }
             >
-              <ImageBackground
-                source={require('../../assets/images/cluckySprintbtn.png')}
-                style={styles.cluckySprintKingdomActionBtn}
+              <LinearGradient
+                colors={['#FAA506', '#F6FA7E']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  width: 242,
+                  height: 104,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 22,
+                }}
               >
                 <Text style={styles.cluckySprintKingdomActionBtnText}>
                   Choose
                 </Text>
-              </ImageBackground>
+              </LinearGradient>
             </TouchableOpacity>
           )}
 
           {cluckySprintKingdomState === 'selected' && (
-            <ImageBackground
-              source={require('../../assets/images/cluckySprintbtn.png')}
-              style={[styles.cluckySprintKingdomActionBtn, styles.disabledBtn]}
+            <LinearGradient
+              colors={['#FAA506', '#F6FA7E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                width: 242,
+                height: 104,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 22,
+              }}
             >
               <Text
                 style={[
@@ -261,7 +286,7 @@ const CluckyKingdomSprintMarket = () => {
               >
                 Selected
               </Text>
-            </ImageBackground>
+            </LinearGradient>
           )}
         </View>
       </View>

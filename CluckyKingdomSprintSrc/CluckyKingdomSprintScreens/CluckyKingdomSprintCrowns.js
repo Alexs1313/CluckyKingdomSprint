@@ -15,6 +15,7 @@ import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import { captureRef } from 'react-native-view-shot';
 import { cluckySprintKingdomCrownImages } from '../CluckyKingdomSprintConsts/cluckySprintKingdomAssets';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { height } = Dimensions.get('window');
 
@@ -121,12 +122,20 @@ const CluckyKingdomSprintCrowns = () => {
             activeOpacity={0.7}
             onPress={() => setCluckySprintKingdomScreen('crowns')}
           >
-            <ImageBackground
-              source={require('../../assets/images/cluckySprintbtn.png')}
-              style={styles.cluckySprintKingdomOkayBtn}
+            <LinearGradient
+              colors={['#FAA506', '#F6FA7E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                width: 242,
+                height: 104,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 22,
+              }}
             >
               <Text style={styles.cluckySprintKingdomOkayText}>OKAY</Text>
-            </ImageBackground>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
@@ -198,14 +207,22 @@ const CluckyKingdomSprintCrowns = () => {
               activeOpacity={0.7}
               onPress={() => setCluckySprintKingdomScreen('wallpaper')}
             >
-              <ImageBackground
-                source={require('../../assets/images/cluckySprintbtn.png')}
-                style={styles.cluckySprintKingdomWallpaperBtn}
+              <LinearGradient
+                colors={['#FAA506', '#F6FA7E']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  width: 242,
+                  height: 104,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 22,
+                }}
               >
                 <Text style={styles.cluckySprintKingdomWallpaperText}>
                   Wallpaper
                 </Text>
-              </ImageBackground>
+              </LinearGradient>
             </TouchableOpacity>
           </>
         )}
@@ -241,12 +258,20 @@ const CluckyKingdomSprintCrowns = () => {
           activeOpacity={0.7}
           onPress={cluckySprintKingdomShareWallpaper}
         >
-          <ImageBackground
-            source={require('../../assets/images/cluckySprintbtn.png')}
-            style={styles.cluckySprintKingdomShareBtn}
+          <LinearGradient
+            colors={['#FAA506', '#F6FA7E']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              width: 242,
+              height: 104,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: 22,
+            }}
           >
             <Text style={styles.cluckySprintKingdomShareText}>SHARE</Text>
-          </ImageBackground>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </CluckySprintKingdomLayout>

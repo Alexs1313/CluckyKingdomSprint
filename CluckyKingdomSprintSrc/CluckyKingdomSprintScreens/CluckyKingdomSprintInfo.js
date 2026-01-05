@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { height } = Dimensions.get('window');
 
@@ -48,12 +49,21 @@ const CluckyKingdomSprintInfo = () => {
         </Text>
 
         <TouchableOpacity activeOpacity={0.6} onPress={CluckySprintShareInfo}>
-          <ImageBackground
-            source={require('../../assets/images/cluckySprintbtn.png')}
-            style={styles.cluckySprintBtn}
+          <LinearGradient
+            colors={['#FAA506', '#F6FA7E']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              width: 242,
+              height: 104,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: 22,
+              marginTop: 24,
+            }}
           >
             <Text style={styles.cluckySprintBtnText}>SHARE</Text>
-          </ImageBackground>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </CluckySprintKingdomLayout>

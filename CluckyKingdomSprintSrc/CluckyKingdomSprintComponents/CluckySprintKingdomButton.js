@@ -1,24 +1,23 @@
-import {
-  ImageBackground,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 const CluckySprintKingdomButton = ({ onPress, btnTitle }) => {
   return (
     <TouchableOpacity activeOpacity={0.6} onPress={() => onPress()}>
-      <ImageBackground
-        source={require('../../assets/images/cluckySprintbtn.png')}
+      <LinearGradient
+        colors={['#FAA506', '#F6FA7E']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={{
           width: 242,
-          height: 103,
+          height: 104,
           justifyContent: 'center',
           alignItems: 'center',
+          borderRadius: 22,
         }}
       >
         <Text style={styles.cluckySprintBtnText}>{btnTitle}</Text>
-      </ImageBackground>
+      </LinearGradient>
     </TouchableOpacity>
   );
 };
