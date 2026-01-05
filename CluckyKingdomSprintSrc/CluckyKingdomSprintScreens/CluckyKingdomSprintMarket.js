@@ -35,24 +35,58 @@ const CluckyKingdomSprintMarket = () => {
   }, []);
 
   const cluckySprintKingdomLoadData = async () => {
-    const cluckySprintKingdomFruitsData = await AsyncStorage.getItem(
-      'cluckySprintFruitBank',
-    );
-    const cluckySprintKingdomBoughtData = await AsyncStorage.getItem(
-      'cluckySprintKingdomWallpapersBought',
-    );
-    const cluckySprintKingdomSelectedData = await AsyncStorage.getItem(
-      'cluckySprintKingdomSelectedWallpaper',
-    );
-
-    if (cluckySprintKingdomFruitsData)
-      setCluckySprintKingdomFruits(JSON.parse(cluckySprintKingdomFruitsData));
-    if (cluckySprintKingdomBoughtData)
-      setCluckySprintKingdomBought(JSON.parse(cluckySprintKingdomBoughtData));
-    if (cluckySprintKingdomSelectedData)
-      setCluckySprintKingdomSelected(
-        parseInt(cluckySprintKingdomSelectedData, 10),
+    try {
+      const cluckySprintKingdomFruitsData = await AsyncStorage.getItem(
+        'cluckySprintFruitBank',
       );
+      const cluckySprintKingdomBoughtData = await AsyncStorage.getItem(
+        'cluckySprintKingdomWallpapersBought',
+      );
+      const cluckySprintKingdomSelectedData = await AsyncStorage.getItem(
+        'cluckySprintKingdomSelectedWallpaper',
+      );
+
+      if (cluckySprintKingdomFruitsData) {
+        setCluckySprintKingdomFruits(JSON.parse(cluckySprintKingdomFruitsData));
+      }
+
+      if (cluckySprintKingdomBoughtData) {
+        setCluckySprintKingdomBought(JSON.parse(cluckySprintKingdomBoughtData));
+      } else {
+        // дефолт: id 0 и 1 куплены (синяя доступна)
+        const defaultBought = [0, 1];
+        setCluckySprintKingdomBought(defaultBought);
+        await AsyncStorage.setItem(
+          'cluckySprintKingdomWallpapersBought',
+          JSON.stringify(defaultBought),
+        );
+      }
+
+      if (cluckySprintKingdomSelectedData !== null) {
+        const selectedId = parseInt(cluckySprintKingdomSelectedData, 10);
+        setCluckySprintKingdomSelected(selectedId);
+
+        const idx = cluckySprintKingdomWallpapers.findIndex(
+          w => w.id === selectedId,
+        );
+        setCluckySprintKingdomIndex(idx >= 0 ? idx : 0);
+      } else {
+        // если нет выбранного — выставим 1 (синяя) и preview на неё
+        const defaultSelected = 1;
+        setCluckySprintKingdomSelected(defaultSelected);
+        await AsyncStorage.setItem(
+          'cluckySprintKingdomSelectedWallpaper',
+          String(defaultSelected),
+        );
+
+        const idx = cluckySprintKingdomWallpapers.findIndex(
+          w => w.id === defaultSelected,
+        );
+        setCluckySprintKingdomIndex(idx >= 0 ? idx : 0);
+      }
+    } catch (e) {
+      console.warn('Market load error', e);
+    }
   };
 
   const cluckySprintKingdomSaveBought = async updatedValue => {
@@ -92,11 +126,20 @@ const CluckyKingdomSprintMarket = () => {
     await cluckySprintKingdomSaveFruits(cluckySprintKingdomNewFruits);
 
     const cluckySprintKingdomNewBought = [
-      ...cluckySprintKingdomBought,
-      cluckySprintWallpaper.id,
+      ...new Set([...cluckySprintKingdomBought, cluckySprintWallpaper.id]),
     ];
     await cluckySprintKingdomSaveBought(cluckySprintKingdomNewBought);
   };
+
+  const onPrev = () =>
+    setCluckySprintKingdomIndex(prev =>
+      prev === 0 ? cluckySprintKingdomWallpapers.length - 1 : prev - 1,
+    );
+
+  const onNext = () =>
+    setCluckySprintKingdomIndex(
+      prev => (prev + 1) % cluckySprintKingdomWallpapers.length,
+    );
 
   const cluckySprintWallpaper =
     cluckySprintKingdomWallpapers[cluckySprintKingdomIndex];
@@ -107,7 +150,6 @@ const CluckyKingdomSprintMarket = () => {
     cluckySprintKingdomSelected === cluckySprintWallpaper.id;
 
   let cluckySprintKingdomState = 'blocked';
-
   if (cluckySprintIsSelected) cluckySprintKingdomState = 'selected';
   else if (cluckySprintIsBought) cluckySprintKingdomState = 'unlocked';
 
@@ -132,78 +174,96 @@ const CluckyKingdomSprintMarket = () => {
             style={styles.cluckySprintKingdomWallpaperImage}
           />
 
+          {/* overlays показывают статус, но не перехватывают клики (pointerEvents="none") */}
           {cluckySprintKingdomState === 'blocked' && (
-            <View style={styles.cluckySprintKingdomBlockedOverlay}>
+            <View
+              pointerEvents="none"
+              style={styles.cluckySprintKingdomBlockedOverlay}
+            >
               <Text style={styles.cluckySprintKingdomBlockedText}>Blocked</Text>
             </View>
           )}
 
           {cluckySprintKingdomState === 'unlocked' && (
-            <View style={styles.cluckySprintKingdomUnlockedOverlay}>
+            <View
+              pointerEvents="none"
+              style={styles.cluckySprintKingdomUnlockedOverlay}
+            >
               <Text style={styles.cluckySprintKingdomUnlockedText}>
                 Unlocked
               </Text>
             </View>
           )}
 
-          {cluckySprintKingdomState === 'selected' && (
-            <View style={styles.cluckySprintKingdomUnlockedOverlay}>
-              <Text style={styles.cluckySprintKingdomUnlockedText}>Elect</Text>
-            </View>
-          )}
+          <TouchableOpacity
+            style={[styles.arrowBtn, styles.arrowLeft]}
+            onPress={onPrev}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.arrowText}>‹</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.arrowBtn, styles.arrowRight]}
+            onPress={onNext}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.arrowText}>›</Text>
+          </TouchableOpacity>
         </View>
 
-        {cluckySprintKingdomState === 'blocked' && (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => cluckySprintKingdomTryBuy(cluckySprintWallpaper)}
-          >
+        <View style={{ marginTop: 30 }}>
+          {cluckySprintKingdomState === 'blocked' && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => cluckySprintKingdomTryBuy(cluckySprintWallpaper)}
+            >
+              <ImageBackground
+                source={require('../../assets/images/cluckySprintbtn.png')}
+                style={styles.cluckySprintKingdomActionBtn}
+              >
+                <Text style={styles.cluckySprintKingdomActionBtnText}>
+                  Unlock for {cluckySprintWallpaper.price}
+                </Text>
+                <Image source={require('../../assets/images/lemon.png')} />
+              </ImageBackground>
+            </TouchableOpacity>
+          )}
+
+          {cluckySprintKingdomState === 'unlocked' && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() =>
+                cluckySprintKingdomSaveSelected(cluckySprintWallpaper.id)
+              }
+            >
+              <ImageBackground
+                source={require('../../assets/images/cluckySprintbtn.png')}
+                style={styles.cluckySprintKingdomActionBtn}
+              >
+                <Text style={styles.cluckySprintKingdomActionBtnText}>
+                  Choose
+                </Text>
+              </ImageBackground>
+            </TouchableOpacity>
+          )}
+
+          {cluckySprintKingdomState === 'selected' && (
             <ImageBackground
               source={require('../../assets/images/cluckySprintbtn.png')}
-              style={styles.cluckySprintKingdomActionBtn}
+              style={[styles.cluckySprintKingdomActionBtn, styles.disabledBtn]}
             >
-              <Text style={styles.cluckySprintKingdomActionBtnText}>
-                Unlock for {cluckySprintWallpaper.price} 🍋
+              <Text
+                style={[
+                  styles.cluckySprintKingdomActionBtnText,
+                  { opacity: 0.6 },
+                ]}
+              >
+                Selected
               </Text>
             </ImageBackground>
-          </TouchableOpacity>
-        )}
-
-        {cluckySprintKingdomState === 'unlocked' && (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() =>
-              cluckySprintKingdomSaveSelected(cluckySprintWallpaper.id)
-            }
-          >
-            <ImageBackground
-              source={require('../../assets/images/cluckySprintbtn.png')}
-              style={styles.cluckySprintKingdomActionBtn}
-            >
-              <Text style={styles.cluckySprintKingdomActionBtnText}>
-                Choose
-              </Text>
-            </ImageBackground>
-          </TouchableOpacity>
-        )}
-
-        {cluckySprintKingdomState === 'selected' && (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() =>
-              setCluckySprintKingdomIndex(
-                prev => (prev + 1) % cluckySprintKingdomWallpapers.length,
-              )
-            }
-          >
-            <ImageBackground
-              source={require('../../assets/images/cluckySprintbtn.png')}
-              style={styles.cluckySprintKingdomActionBtn}
-            >
-              <Text style={styles.cluckySprintKingdomActionBtnText}>Next</Text>
-            </ImageBackground>
-          </TouchableOpacity>
-        )}
+          )}
+        </View>
       </View>
     </CluckySprintKingdomLayout>
   );
@@ -244,6 +304,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderWidth: 2,
     borderColor: '#40a6ffc3',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cluckySprintKingdomWallpaperImage: {
     width: '100%',
@@ -274,16 +336,45 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   cluckySprintKingdomActionBtn: {
-    width: 240,
-    height: 102,
+    width: 259,
+    height: 112,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 30,
+    flexDirection: 'row',
+    gap: 10,
   },
   cluckySprintKingdomActionBtnText: {
     color: '#6D1300',
     fontSize: 24,
     fontWeight: '900',
+  },
+  disabledBtn: {
+    opacity: 0.9,
+  },
+  arrowBtn: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 30,
+    elevation: 8,
+  },
+  arrowLeft: {
+    left: 12,
+  },
+  arrowRight: {
+    right: 12,
+  },
+  arrowText: {
+    color: '#fff',
+    fontSize: 36,
+    fontWeight: '900',
+    lineHeight: 36,
   },
 });
 

@@ -6,6 +6,7 @@ import CluckySprintKingdomLayout from '../CluckyKingdomSprintComponents/CluckySp
 import { useStore } from '../CluckyKingdomSprintStore/cluckySprintKingdomContext';
 import { cluckySprintKingdomFruitImages } from '../CluckyKingdomSprintConsts/cluckySprintKingdomAssets';
 import CluckySprintKingdomButton from '../CluckyKingdomSprintComponents/CluckySprintKingdomButton';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CluckyKingdomSprintHome = () => {
   const navigation = useNavigation();

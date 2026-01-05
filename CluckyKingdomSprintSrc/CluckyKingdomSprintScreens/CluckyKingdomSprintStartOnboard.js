@@ -20,7 +20,7 @@ const CluckyKingdomSprintStartOnboard = () => {
       source={
         currentCluckySprintIndex === 0
           ? require('../../assets/images/cluckySprintbgonb.png')
-          : require('../../assets/images/cluckySprintbg.png')
+          : require('../../assets/images/cluckySprintBg1.png')
       }
       style={{ flex: 1, resizeMode: 'cover' }}
     >

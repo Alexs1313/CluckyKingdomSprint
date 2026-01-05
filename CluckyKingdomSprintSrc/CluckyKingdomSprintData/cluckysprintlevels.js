@@ -1,43 +1,53 @@
 export const cluckysprintlevels = Array.from({ length: 50 }, (_, i) => {
   const id = i + 1;
-  const time = Math.max(15, 45 - Math.floor(id * 0.6));
+
+  const time = Math.max(12, 45 - Math.floor(id * 0.75));
 
   let needs = {};
 
   if (id <= 5) {
     needs = {
-      orange: 1 + Math.floor(id / 2),
-      grape: 1,
-      lemon: 1,
-      cherry: 1,
+      orange: 3 + Math.floor(id / 2),
+      grape: 2,
+      lemon: 2,
+      cherry: 2,
     };
-  } else if (id <= 15) {
+  } else if (id <= 10) {
     needs = {
-      orange: 1 + (id % 3),
-      grape: 1 + (id % 2),
-      lemon: 1 + Math.floor(id / 6),
-      cherry: 1 + (id % 2),
+      orange: 4 + (id % 3),
+      grape: 3 + (id % 2),
+      lemon: 3,
+      cherry: 3,
+    };
+  } else if (id <= 20) {
+    needs = {
+      orange: 6 + (id % 4),
+      grape: 5 + (id % 3),
+      lemon: 4 + (id % 2),
+      cherry: 4 + (id % 3),
     };
   } else if (id <= 30) {
+    const main = id % 4;
+
     needs = {
-      orange: 2 + (id % 4),
-      grape: 2 + (id % 3),
-      lemon: 2 + (id % 5),
-      cherry: 2 + (id % 4),
+      orange: main === 0 ? 12 + (id % 3) : 6 + (id % 2),
+      grape: main === 1 ? 12 + (id % 3) : 6 + (id % 2),
+      lemon: main === 2 ? 11 + (id % 3) : 5 + (id % 2),
+      cherry: main === 3 ? 11 + (id % 3) : 5 + (id % 2),
     };
   } else if (id <= 40) {
     needs = {
-      orange: 3 + (id % 4),
-      grape: 3 + (id % 3),
-      lemon: 3 + (id % 5),
-      cherry: 3 + (id % 4),
+      orange: 10 + (id % 4),
+      grape: 9 + (id % 4),
+      lemon: 9 + (id % 3),
+      cherry: 9 + (id % 3),
     };
   } else {
     needs = {
-      orange: 5 + (id % 3),
-      grape: 5 + (id % 4),
-      lemon: 5 + (id % 2),
-      cherry: 5 + (id % 3),
+      orange: 14 + (id % 4),
+      grape: 13 + (id % 4),
+      lemon: 12 + (id % 3),
+      cherry: 12 + (id % 3),
     };
   }
 

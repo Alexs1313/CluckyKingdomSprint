@@ -65,13 +65,25 @@ const CluckyKingdomSprintPlayground = () => {
     cluckySprintKingdomSelectedWallpaper,
     setCluckySprintKingdomSelectedWallpaper,
   ] = useState(0);
+
+  const [comboFruit, setComboFruit] = useState(null);
+  const [comboCount, setComboCount] = useState(0);
+  const [comboActive, setComboActive] = useState(false);
+
   const cluckySprintKingdomTimerRef = useRef(null);
   const cluckySprintKingdomSpawnRef = useRef(null);
+
+  const sizePool = [
+    { scale: 1, weight: 3 },
+    { scale: 1.3, weight: 5 },
+    { scale: 1.2, weight: 3 },
+  ];
+
+  const weightedSizes = sizePool.flatMap(s => Array(s.weight).fill(s.scale));
 
   useFocusEffect(
     useCallback(() => {
       Orientation.lockToPortrait();
-
       return () => Orientation.unlockAllOrientations();
     }, []),
   );
@@ -96,11 +108,22 @@ const CluckyKingdomSprintPlayground = () => {
           setCluckySprintKingdomCrowns(parseInt(cluckySprintCrwn, 10));
         if (cluckySprintFruits)
           setCluckySprintKingdomFruitBank(JSON.parse(cluckySprintFruits));
-        if (cluckySprintWallpaper)
+
+        if (cluckySprintWallpaper !== null) {
           setCluckySprintKingdomSelectedWallpaper(
             parseInt(cluckySprintWallpaper, 10),
           );
-      } catch (e) {}
+        } else {
+          const defaultWallpaperId = 1; // <- синий
+          setCluckySprintKingdomSelectedWallpaper(defaultWallpaperId);
+          await AsyncStorage.setItem(
+            'cluckySprintKingdomSelectedWallpaper',
+            String(defaultWallpaperId),
+          );
+        }
+      } catch (e) {
+        console.warn('Playground load error', e);
+      }
     };
 
     cluckySprintKingdomLoadProgress();
@@ -142,6 +165,9 @@ const CluckyKingdomSprintPlayground = () => {
   useEffect(() => () => cluckySprintKingdomClearLoops(), []);
 
   const cluckySprintKingdomStartLevel = selectedLvl => {
+    setComboFruit(null);
+    setComboCount(0);
+    setComboActive(false);
     cluckySprintKingdomClearLoops();
     const cluckySprintData = cluckySprintKingdomGetLevelData(selectedLvl);
     const initialCollected = cluckySprintKingdomResetCollectedForNeeds(
@@ -183,23 +209,57 @@ const CluckyKingdomSprintPlayground = () => {
       cluckySprintPool[Math.floor(Math.random() * cluckySprintPool.length)] ||
       'orange';
     const cluckySprintStartX = Math.random() * (width - 80) + 20;
-    const cluckySprintAnim = new Animated.Value(-60);
+
+    const baseScale =
+      weightedSizes[Math.floor(Math.random() * weightedSizes.length)] || 1;
+
+    const cluckySprintAnim = new Animated.Value(-80);
+    const cluckySprintTranslateX = new Animated.Value(0);
+    const cluckySprintScaleAnim = new Animated.Value(baseScale);
+    const cluckySprintOpacity = new Animated.Value(1);
+    const cluckySprintRotate = new Animated.Value(0);
     const cluckySprintId = Date.now().toString() + Math.random().toString();
+
+    const baseDuration = 3000;
+    const speedMultiplier = Math.max(0.35, 1 - cluckySprintKingdomLevel * 0.02);
+    const fallDuration = baseDuration * speedMultiplier;
+    const randomXOffset = Math.random() * 40 - 20;
 
     const newCluckyFruit = {
       id: cluckySprintId,
       type: cluckySprintType,
-      x: cluckySprintStartX,
+      startX: cluckySprintStartX,
       anim: cluckySprintAnim,
+      translateX: cluckySprintTranslateX,
+      scaleAnim: cluckySprintScaleAnim,
+      opacityAnim: cluckySprintOpacity,
+      rotateAnim: cluckySprintRotate,
+      baseScale,
     };
+
     setCluckySprintKingdomFruits(prevFruit => [...prevFruit, newCluckyFruit]);
 
-    Animated.timing(cluckySprintAnim, {
-      toValue: height + 80,
-      duration: 4000,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    }).start(() => {
+    Animated.parallel([
+      Animated.timing(cluckySprintAnim, {
+        toValue: height + 80,
+        duration: fallDuration,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cluckySprintTranslateX, {
+        toValue: randomXOffset,
+        duration: fallDuration,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cluckySprintRotate, {
+        toValue: Math.random() * 1.2 - 0.6, // небольшая ротация на падении
+        duration: fallDuration,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // удаляем фрукт если он не был уже удалён
       setCluckySprintKingdomFruits(prevFruit =>
         prevFruit.filter(f => f.id !== newCluckyFruit.id),
       );
@@ -207,34 +267,216 @@ const CluckyKingdomSprintPlayground = () => {
   };
 
   const cluckySprintKingdomOnFruitPress = selectedFruit => {
-    const { type, id } = selectedFruit;
+    const { id, type } = selectedFruit;
 
-    setCluckySprintKingdomFruits(prevFruit =>
-      prevFruit.filter(fruit => fruit.id !== id),
-    );
+    const fruit = cluckySprintKingdomFruits.find(f => f.id === id);
+    if (!fruit) return;
 
-    if (!cluckySprintKingdomNeeds[type]) return;
+    const isNeeded = !!cluckySprintKingdomNeeds[type];
 
-    setCluckySprintKingdomCollected(prevCollected => {
-      const cluckySprintCurrent = prevCollected[type];
-      const cluckySprintMax = cluckySprintKingdomNeeds[type];
+    const isSame = comboFruit === type;
+    const nextComboCount = isSame ? comboCount + 1 : 1;
+    const nextComboActive = nextComboCount >= 4;
 
-      if (cluckySprintCurrent >= cluckySprintMax) return prevCollected;
+    const toRight = fruit.startX > width / 2;
+    const horizontalDistance = toRight
+      ? width - fruit.startX + 120
+      : -fruit.startX - 120;
 
-      const updatedCluckyCollected = {
-        ...prevCollected,
-        [type]: cluckySprintCurrent + 1,
-      };
+    const verticalTarget = -220;
 
-      if (
-        cluckySprintKingdomSumCollected(updatedCluckyCollected) >=
-        cluckySprintKingdomSumNeeds(cluckySprintKingdomNeeds)
-      ) {
-        cluckySprintKingdomFinishLevel(true, updatedCluckyCollected);
+    try {
+      if (fruit.translateX && fruit.translateX.stopAnimation)
+        fruit.translateX.stopAnimation();
+      if (fruit.rotateAnim && fruit.rotateAnim.stopAnimation)
+        fruit.rotateAnim.stopAnimation();
+    } catch (e) {}
+
+    try {
+      if (fruit.anim && fruit.anim.stopAnimation) {
+        fruit.anim.stopAnimation(currentY => {
+          const dipOffset = 28;
+          const dipTarget = currentY + dipOffset;
+
+          Animated.sequence([
+            Animated.timing(fruit.anim, {
+              toValue: dipTarget,
+              duration: 100,
+              easing: Easing.in(Easing.quad),
+              useNativeDriver: true,
+            }),
+
+            Animated.parallel([
+              Animated.timing(fruit.anim, {
+                toValue: verticalTarget,
+                duration: 600,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+              }),
+              Animated.timing(fruit.translateX, {
+                toValue: horizontalDistance,
+                duration: 650,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+              }),
+              Animated.timing(fruit.scaleAnim, {
+                toValue: (fruit.baseScale || 1) * 0.55,
+                duration: 650,
+                easing: Easing.out(Easing.quad),
+                useNativeDriver: true,
+              }),
+              Animated.timing(fruit.opacityAnim, {
+                toValue: 0,
+                duration: 650,
+                useNativeDriver: true,
+              }),
+              Animated.timing(fruit.rotateAnim, {
+                toValue: toRight ? 2 : -2,
+                duration: 650,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+              }),
+            ]),
+          ]).start(() => {
+            setCluckySprintKingdomFruits(prev =>
+              prev.filter(f => f.id !== fruit.id),
+            );
+
+            if (!isNeeded) {
+              setComboFruit(null);
+              setComboCount(0);
+              setComboActive(false);
+              return;
+            }
+
+            setComboFruit(type);
+            setComboCount(nextComboCount);
+            setComboActive(nextComboActive);
+
+            setCluckySprintKingdomCollected(prevCollected => {
+              const current = prevCollected[type] || 0;
+              const max = cluckySprintKingdomNeeds[type];
+
+              if (current >= max) return prevCollected;
+
+              const addValue = nextComboActive ? 2 : 1;
+              const newValue = Math.min(current + addValue, max);
+
+              const updated = {
+                ...prevCollected,
+                [type]: newValue,
+              };
+
+              if (
+                cluckySprintKingdomSumCollected(updated) >=
+                cluckySprintKingdomSumNeeds(cluckySprintKingdomNeeds)
+              ) {
+                cluckySprintKingdomFinishLevel(true, updated);
+              }
+
+              return updated;
+            });
+          });
+        });
+      } else {
+        Animated.parallel([
+          Animated.timing(fruit.anim, {
+            toValue: verticalTarget,
+            duration: 600,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(fruit.translateX, {
+            toValue: horizontalDistance,
+            duration: 650,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(fruit.scaleAnim, {
+            toValue: (fruit.baseScale || 1) * 0.55,
+            duration: 650,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(fruit.opacityAnim, {
+            toValue: 0,
+            duration: 650,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fruit.rotateAnim, {
+            toValue: toRight ? 2 : -2,
+            duration: 650,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          setCluckySprintKingdomFruits(prev =>
+            prev.filter(f => f.id !== fruit.id),
+          );
+
+          if (!isNeeded) {
+            setComboFruit(null);
+            setComboCount(0);
+            setComboActive(false);
+            return;
+          }
+
+          setComboFruit(type);
+          setComboCount(nextComboCount);
+          setComboActive(nextComboActive);
+
+          setCluckySprintKingdomCollected(prevCollected => {
+            const current = prevCollected[type] || 0;
+            const max = cluckySprintKingdomNeeds[type];
+
+            if (current >= max) return prevCollected;
+
+            const addValue = nextComboActive ? 2 : 1;
+            const newValue = Math.min(current + addValue, max);
+
+            const updated = {
+              ...prevCollected,
+              [type]: newValue,
+            };
+
+            if (
+              cluckySprintKingdomSumCollected(updated) >=
+              cluckySprintKingdomSumNeeds(cluckySprintKingdomNeeds)
+            ) {
+              cluckySprintKingdomFinishLevel(true, updated);
+            }
+
+            return updated;
+          });
+        });
       }
-
-      return updatedCluckyCollected;
-    });
+    } catch (e) {
+      setCluckySprintKingdomFruits(prev => prev.filter(f => f.id !== fruit.id));
+      if (!isNeeded) {
+        setComboFruit(null);
+        setComboCount(0);
+        setComboActive(false);
+        return;
+      }
+      setComboFruit(type);
+      setComboCount(nextComboCount);
+      setComboActive(nextComboActive);
+      setCluckySprintKingdomCollected(prevCollected => {
+        const current = prevCollected[type] || 0;
+        const max = cluckySprintKingdomNeeds[type];
+        if (current >= max) return prevCollected;
+        const addValue = nextComboActive ? 2 : 1;
+        const newValue = Math.min(current + addValue, max);
+        const updated = { ...prevCollected, [type]: newValue };
+        if (
+          cluckySprintKingdomSumCollected(updated) >=
+          cluckySprintKingdomSumNeeds(cluckySprintKingdomNeeds)
+        ) {
+          cluckySprintKingdomFinishLevel(true, updated);
+        }
+        return updated;
+      });
+    }
   };
 
   const cluckySprintKingdomAddFruitsToBank = async collectedObs => {
@@ -439,6 +681,11 @@ The fruits can be used to unlock new backgrounds in the corresponding section.`}
                 <Text style={styles.cluckySprintKingdomLevelTitle}>
                   LEVEL {cluckySprintKingdomData.id}
                 </Text>
+                {comboActive && (
+                  <Text style={{ color: '#fff', fontSize: 18, marginTop: 6 }}>
+                    Combo x2!
+                  </Text>
+                )}
                 {cluckySprintKingdomRenderFruitCounters(
                   cluckySprintKingdomNeeds,
                   cluckySprintKingdomCollected,
@@ -458,27 +705,42 @@ The fruits can be used to unlock new backgrounds in the corresponding section.`}
             </LinearGradient>
 
             <View style={styles.cluckySprintKingdomFruitsArea}>
-              {cluckySprintKingdomFruits.map(fruit => (
-                <TouchableWithoutFeedback
-                  key={fruit.id}
-                  onPress={() => cluckySprintKingdomOnFruitPress(fruit)}
-                >
-                  <Animated.View
-                    style={[
-                      styles.cluckySprintKingdomFruitItem,
-                      {
-                        transform: [{ translateY: fruit.anim }],
-                        left: fruit.x,
-                      },
-                    ]}
+              {cluckySprintKingdomFruits.map(fruit => {
+                const rotate = fruit.rotateAnim
+                  ? fruit.rotateAnim.interpolate({
+                      inputRange: [-5, 5],
+                      outputRange: ['-5rad', '5rad'],
+                    })
+                  : '0rad';
+
+                return (
+                  <TouchableWithoutFeedback
+                    key={fruit.id}
+                    onPress={() => cluckySprintKingdomOnFruitPress(fruit)}
                   >
-                    <Image
-                      source={cluckySprintKingdomFruitImages[fruit.type]}
-                      style={styles.cluckySprintKingdomFruitImage}
-                    />
-                  </Animated.View>
-                </TouchableWithoutFeedback>
-              ))}
+                    <Animated.View
+                      style={[
+                        styles.cluckySprintKingdomFruitItem,
+                        {
+                          left: fruit.startX,
+                          opacity: fruit.opacityAnim,
+                          transform: [
+                            { translateY: fruit.anim },
+                            { translateX: fruit.translateX },
+                            { scale: fruit.scaleAnim },
+                            { rotate: rotate },
+                          ],
+                        },
+                      ]}
+                    >
+                      <Image
+                        source={cluckySprintKingdomFruitImages[fruit.type]}
+                        style={styles.cluckySprintKingdomFruitImage}
+                      />
+                    </Animated.View>
+                  </TouchableWithoutFeedback>
+                );
+              })}
             </View>
 
             <View style={styles.cluckySprintKingdomBottomHomeWrap}>
